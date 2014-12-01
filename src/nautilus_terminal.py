@@ -206,6 +206,7 @@ class NautilusTerminal(object):
             cdcmd = " cd '%s'\n" % self._path.replace("'", r"'\''")
             #self.term.feed("\033[8m", len("\033[8m"))
             self.term.feed_child(cdcmd, len(cdcmd))
+            self.term.grab_focus()
 
     def get_widget(self):
         """Return the top-level widget of Nautilus Terminal."""
@@ -266,22 +267,27 @@ class NautilusTerminal(object):
 
     def _shell_is_busy(self):
         """Check if the shell is waiting for a command or not."""
+        print ">" * 120, self.shell_pid
         wchan_path = "/proc/%i/wchan" % self.shell_pid
         wchan = open(wchan_path, "r").read()
         if wchan == "n_tty_read":
-            return False
+            res = False
         elif wchan == "schedule":
             shell_stack_path = "/proc/%i/stack" % self.shell_pid
             try:
+                res = True
                 for line in open(shell_stack_path, "r"):
                     if line.split(" ")[-1].startswith("n_tty_read"):
-                        return False
-                return True
+                        res = False
             except IOError:
                 #We can't know...
-                return False
+                res = False
+        elif wchan == "0": # Always 0 in x86 systems :(
+            # See http://careers.directi.com/display/tu/Understanding+Processes+in+Linux
+            res = False
         else:
-            return True
+            res = True
+        return res
 
     def _uri_to_path(self, uri):
         """Returns the path corresponding of the given URI.
@@ -355,6 +361,7 @@ class Crowbar(object):
             old_parent -- The previous parent of the crowbar (None...).
         """
         #Check if the work has already started
+        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", self._lock , "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
         if self._lock:
             return
         else:
@@ -375,7 +382,7 @@ class Crowbar(object):
                     if hasattr(crowbar_ppp_child, "nt"):
                         nterm = crowbar_ppp_child.nt
                     break
-            #Update the temrinal (cd,...)
+            #Update the terminal (cd,...)
             if nterm:
                 nterm.change_directory(self._uri)
         #New tab/window/split
@@ -404,6 +411,7 @@ class Crowbar(object):
                 vpan.add1(nterm.get_widget())
             else:
                 vpan.add2(nterm.get_widget())
+            nterm.change_directory(self._uri)
 
     def _on_crowbar_pp_parent_set(self, widget, old_parent):
         """Called when the vpan parent lost his parent.
