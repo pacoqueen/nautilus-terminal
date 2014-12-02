@@ -1,4 +1,5 @@
 .bzr
 .*.swp
+.*.swo
 *.pyo
 *.pyc

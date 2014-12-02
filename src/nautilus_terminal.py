@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
 ############################################################################
@@ -132,6 +132,7 @@ class NautilusTerminal(object):
         self.term.connect_after("child-exited", self._on_term_child_exited)
         self.term.connect_after("popup-menu", self._on_term_popup_menu)
         self.term.connect("button-release-event", self._on_term_popup_menu)
+        #self.term.connect("commit", self._on_changed)
         #Accelerators
         accel_group = Gtk.AccelGroup()
         self._window.add_accel_group(accel_group)
@@ -205,10 +206,10 @@ class NautilusTerminal(object):
         """
         self._path = self._uri_to_path(uri)
         if not self._shell_is_busy():
-            cdcmd = " cd '%s'\n" % self._path.replace("'", r"'\''")
+            cdcmd = " cd '%s' # ⏎\n" % self._path.replace("'", r"'\''")
             #self.term.feed("\033[8m", len("\033[8m"))
             self.term.feed_child(cdcmd, len(cdcmd))
-            self.term.grab_focus()
+            #self.term.grab_focus()     # Does not work in GNOME nautilus 3.10.1 Ubuntu's version.
 
     def get_widget(self):
         """Return the top-level widget of Nautilus Terminal."""
@@ -239,7 +240,7 @@ class NautilusTerminal(object):
         about_dlg.set_version(__version__)
         about_dlg.set_comments(__doc__)
         about_dlg.set_website(__website__)
-        about_dlg.set_copyright("Copyright (c) 2011  %s" % __author__)
+        about_dlg.set_copyright("Copyright (c) 2011-2014  %s" % __author__)
         logo = Gtk.Image.new_from_file(
                 #"/usr/share/nautilus-terminal/logo_120x120.png")
                 os.path.join(
@@ -248,7 +249,7 @@ class NautilusTerminal(object):
         about_dlg.set_logo(logo.get_pixbuf())
         #Signal
         about_dlg.connect("response", lambda w, r: w.destroy())
-        #Display de dialog
+        #Display the dialog
         about_dlg.show()
 
     def destroy(self):
@@ -269,7 +270,6 @@ class NautilusTerminal(object):
 
     def _shell_is_busy(self):
         """Check if the shell is waiting for a command or not."""
-        print ">" * 120, self.shell_pid
         wchan_path = "/proc/%i/wchan" % self.shell_pid
         wchan = open(wchan_path, "r").read()
         if wchan == "n_tty_read":
@@ -306,6 +306,14 @@ class NautilusTerminal(object):
         """
         self.swin.set_size_request(-1,
                 height * self.term.get_char_height() + 2)
+
+    def _on_changed(self, widget, text, size):
+        """Called when a new char is added by user o extension on term.
+        Change current directory on nautilus if differs from term's working
+        path.
+        """
+        #if self._path != self.term.
+        #Nautilus.
 
     def _on_term_popup_menu(self, widget, event=None):
         """Displays the contextual menu on right-click and menu-key."""
@@ -368,7 +376,6 @@ class Crowbar(object):
             old_parent -- The previous parent of the crowbar (None...).
         """
         #Check if the work has already started
-        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", self._lock , "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
         if self._lock:
             return
         else:
@@ -489,7 +496,7 @@ class NautilusTerminalProvider(GObject.GObject, Nautilus.LocationWidgetProvider)
             window -- The Nautilus' window.
             event -- The detail of the event.
         """
-        # TODO: ¿Dónde puedo hacer que cambie de directorio el nautilus si hago cd en el terminal? ¿Y cómo evito que al teclear / se vaya a la ruta? Y de paso... ¿cómo mejoro lo del foco? No acaba de convencerme que lo coja siempre que cambie de directorio y con el tab no es fácil llegar ni puedo apoderarme de él para robar el foco...
+        # TODO: ¿Dónde puedo hacer que cambie de directorio el nautilus si hago cd en el terminal? ¿Y cómo evito que al teclear / se vaya a la ruta? Y de paso... ¿cómo mejoro lo del foco? No acaba de convencerme que lo coja siempre que cambie de directorio y con el tab no es fácil llegar ni puedo apoderarme de él para robar el foco... Ahora, para colmo, en ubuntu (al menos) no parece funcionar el "backspace". Lo intercepta el propio nautilus para subir un nivel en el path. ¿No habrá un emulador de terminal mejor en python? El Vte está regularmente documentado y solo para C.
         if event.keyval == 65473: #F4
             window.term_visible = not window.term_visible
             for callback in window.toggle_hide_cb:
