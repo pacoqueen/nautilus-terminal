@@ -40,7 +40,7 @@ Notes:
 
 Since `fork_command_full` is deprecated on latest versions of VTE, nautilus-terminal v1.1 only works with VTE >= 0.28 (in Debian's versioning numbers). I think is 0.39 in its owns VTE (Gnome's) versioning.
 
-All references to `fork_command_full` changed to use `spawn_sync`.
+All references to `fork_command_full` changed to use `spawn_sync` in systems with older VTE versions (i. e. Ubuntu 14.04).
 
 Forked from https://launchpad.net/nautilus-terminal since it does not seems have development activity since 2011 or so.
 

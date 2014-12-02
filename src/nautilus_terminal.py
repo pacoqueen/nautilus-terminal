@@ -121,12 +121,14 @@ class NautilusTerminal(object):
         #Term
         self.shell_pid = -1
         self.term = Vte.Terminal()
-        #self.shell_pid = self.term.fork_command_full(Vte.PtyFlags.DEFAULT,
-        #        self._path, [CONF.get("terminal/shell")], None,
-        #        GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
-        self.shell_pid = self.term.spawn_sync(Vte.PtyFlags.DEFAULT,
-                self._path, [CONF.get("terminal/shell")], None,
-                GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
+        try:
+            self.shell_pid = self.term.fork_command_full(Vte.PtyFlags.DEFAULT,
+                    self._path, [CONF.get("terminal/shell")], None,
+                    GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
+        except AttributeError: # VTE >= 0.39
+            self.shell_pid = self.term.spawn_sync(Vte.PtyFlags.DEFAULT,
+                    self._path, [CONF.get("terminal/shell")], None,
+                    GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
         self.term.connect_after("child-exited", self._on_term_child_exited)
         self.term.connect_after("popup-menu", self._on_term_popup_menu)
         self.term.connect("button-release-event", self._on_term_popup_menu)
@@ -320,9 +322,14 @@ class NautilusTerminal(object):
             term -- The VTE terminal (self.term).
         """
         if not self._respawn_lock:
-            self.shell_pid = self.term.spawn_sync(Vte.PtyFlags.DEFAULT,
-                self._path, [CONF.get("terminal/shell")], None,
-                GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
+            try:
+                self.shell_pid = self.term.fork_command_full(Vte.PtyFlags.DEFAULT,
+                    self._path, [CONF.get("terminal/shell")], None,
+                    GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
+            except AttributeError:  # VTE >= 0.39
+                self.shell_pid = self.term.spawn_sync(Vte.PtyFlags.DEFAULT,
+                    self._path, [CONF.get("terminal/shell")], None,
+                    GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
 
     def _on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         """Handles drag & drop."""
