@@ -482,6 +482,7 @@ class NautilusTerminalProvider(GObject.GObject, Nautilus.LocationWidgetProvider)
             window -- The Nautilus' window.
             event -- The detail of the event.
         """
+        # TODO: ¿Dónde puedo hacer que cambie de directorio el nautilus si hago cd en el terminal? ¿Y cómo evito que al teclear / se vaya a la ruta? Y de paso... ¿cómo mejoro lo del foco? No acaba de convencerme que lo coja siempre que cambie de directorio y con el tab no es fácil llegar ni puedo apoderarme de él para robar el foco...
         if event.keyval == 65473: #F4
             window.term_visible = not window.term_visible
             for callback in window.toggle_hide_cb:
