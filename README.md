@@ -30,9 +30,9 @@ Dependencies:
 Local install:
 --------------
 
-Just create ~/.local/share/nautilus-python/extensions and copy (or link) src/nautilus-terminal.py there.
+Just create `~/.local/share/nautilus-python/extensions` and copy (or link) `src/nautilus-terminal.py` there.
 
-Get sure you have python-nautilus installed (sudo apt-get install python-nautilus) and restart nautilus with `nautilus -q && nautilus`.
+Get sure you have `python-nautilus` installed (`sudo apt-get install python-nautilus`) and restart nautilus with `nautilus -q && nautilus`.
 
 
 Notes:
